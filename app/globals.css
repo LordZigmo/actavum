@@ -1,26 +1,197 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ---------------------------------------------------------------------------
+   Design tokens (Tailwind v4 @theme → generate bg-/text-/border-/ring- utils)
+   Always-dark "intelligence board" palette.
+--------------------------------------------------------------------------- */
+@theme {
+  /* charcoal / neutral surface scale (low number = darkest) */
+  --color-ink-950: oklch(0.165 0.012 255);
+  --color-ink-900: oklch(0.202 0.014 255);
+  --color-ink-850: oklch(0.232 0.015 255);
+  --color-ink-800: oklch(0.272 0.016 255);
+  --color-ink-700: oklch(0.338 0.018 255);
+  --color-ink-600: oklch(0.46 0.02 255);
+  --color-ink-500: oklch(0.6 0.02 255);
+  --color-ink-400: oklch(0.72 0.018 255);
+  --color-ink-300: oklch(0.82 0.015 255);
+  --color-ink-200: oklch(0.88 0.012 255);
+
+  /* accent — restrained electric cyan/blue */
+  --color-accent: oklch(0.74 0.14 224);
+  --color-accent-bright: oklch(0.84 0.15 218);
+  --color-accent-dim: oklch(0.44 0.085 232);
+
+  /* entity types */
+  --color-entity-person: oklch(0.74 0.13 250);
+  --color-entity-company: oklch(0.72 0.15 300);
+  --color-entity-address: oklch(0.78 0.14 155);
+  --color-entity-phone: oklch(0.81 0.13 195);
+  --color-entity-email: oklch(0.78 0.12 232);
+  --color-entity-bank: oklch(0.83 0.14 96);
+  --color-entity-vehicle: oklch(0.77 0.14 55);
+  --color-entity-document: oklch(0.7 0.025 255);
+  --color-entity-event: oklch(0.7 0.18 18);
+
+  /* relationship confidence */
+  --color-conf-high: oklch(0.78 0.15 150);
+  --color-conf-medium: oklch(0.83 0.14 92);
+  --color-conf-low: oklch(0.67 0.13 28);
+
+  /* risk bands */
+  --color-risk-high: oklch(0.66 0.19 22);
+  --color-risk-medium: oklch(0.81 0.15 78);
+  --color-risk-low: oklch(0.75 0.13 155);
 }
 
+/* Fonts reference the runtime variables set by next/font on <html>. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+:root {
+  --background: oklch(0.165 0.012 255);
+  --foreground: oklch(0.93 0.008 255);
+}
+
+html,
+body {
+  height: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Dark, thin scrollbars to match the workspace. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink-700) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink-800);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-700);
+}
+
+/* ---------------------------------------------------------------------------
+   Canvas grid — dot pattern. Size/position are driven inline from the
+   pan/zoom transform so it reads as one infinite, scalable board.
+--------------------------------------------------------------------------- */
+.graph-grid {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in oklch, var(--color-ink-700) 80%, transparent) 1px,
+    transparent 1.6px
+  );
+  background-repeat: repeat;
+}
+
+/* z-index scale (documented): grid 0 < edges 10 < edge-labels 20 < nodes 30 <
+   selected node 40 < canvas toolbar 50 < panels (normal flow) < toasts 100 */
+
+/* ---------------------------------------------------------------------------
+   Animations (pure CSS — no animation library)
+--------------------------------------------------------------------------- */
+@keyframes node-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1.5px var(--node-color, var(--color-accent)),
+      0 0 16px -4px var(--node-color, var(--color-accent));
+  }
+  50% {
+    box-shadow:
+      0 0 0 1.5px var(--node-color, var(--color-accent)),
+      0 0 28px 0 var(--node-color, var(--color-accent));
+  }
+}
+
+@keyframes highlight-ring {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px var(--color-accent),
+      0 0 18px -2px var(--color-accent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px var(--color-accent),
+      0 0 32px 2px var(--color-accent);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheen {
+  to {
+    background-position: 200% 0;
+  }
+}
+
+.animate-node-pulse {
+  animation: node-pulse 2.4s ease-in-out infinite;
+}
+.animate-highlight {
+  animation: highlight-ring 1.5s ease-in-out infinite;
+}
+.animate-toast-in {
+  animation: toast-in 0.26s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.animate-dash-flow {
+  animation: dash-flow 0.9s linear infinite;
+}
+.animate-fade-in {
+  animation: fade-in 0.22s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-node-pulse,
+  .animate-highlight,
+  .animate-dash-flow,
+  .animate-toast-in,
+  .animate-fade-in {
+    animation: none !important;
+  }
 }
