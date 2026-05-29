@@ -13,8 +13,13 @@ interface GraphNodeProps {
   highlighted: boolean;
   /** Current zoom — drag deltas are divided by this to convert screen→world. */
   zoom: number;
+  /** A connection is currently being dragged from some node. */
+  connecting: boolean;
+  isConnectSource: boolean;
+  isConnectTarget: boolean;
   onSelect: (id: string) => void;
   onMoveBy: (id: string, dx: number, dy: number) => void;
+  onStartConnect: (id: string, clientX: number, clientY: number) => void;
 }
 
 function GraphNodeImpl({
@@ -24,8 +29,12 @@ function GraphNodeImpl({
   dimmed,
   highlighted,
   zoom,
+  connecting,
+  isConnectSource,
+  isConnectTarget,
   onSelect,
   onMoveBy,
+  onStartConnect,
 }: GraphNodeProps) {
   const Icon = ENTITY_CONFIG[entity.type].icon;
   const color = entityColor(entity.type);
@@ -61,6 +70,20 @@ function GraphNodeImpl({
     }
   }
 
+  const showPulse = selected && !isConnectTarget;
+  const borderColor = isConnectTarget
+    ? "var(--color-accent)"
+    : selected
+      ? "transparent"
+      : `color-mix(in oklch, ${color} 42%, transparent)`;
+  const boxShadow = showPulse
+    ? undefined
+    : isConnectTarget
+      ? "0 0 0 2px var(--color-accent), 0 0 24px -2px var(--color-accent)"
+      : connecting && !isConnectSource
+        ? "0 0 0 1px color-mix(in oklch, var(--color-accent) 45%, transparent)"
+        : `0 1px 0 0 color-mix(in oklch, ${color} 10%, transparent), 0 8px 22px -16px ${color}`;
+
   return (
     // Wrapper carries position (no transition) so drag tracks the cursor 1:1.
     <div
@@ -84,19 +107,17 @@ function GraphNodeImpl({
           "group relative flex w-[188px] cursor-grab items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left backdrop-blur-sm transition-[transform,box-shadow,border-color,opacity] duration-150 active:cursor-grabbing",
           "bg-ink-900/85 hover:-translate-y-0.5",
           isDoc && "border-dashed",
-          selected ? "border-transparent animate-node-pulse" : "hover:shadow-lg",
+          showPulse && "animate-node-pulse",
+          !selected && !isConnectTarget && "hover:shadow-lg",
+          isConnectTarget && "scale-[1.04]",
           highlighted && !selected && "animate-highlight",
           dimmed && "opacity-35 hover:opacity-100",
         )}
         style={{
           // Used by the node-pulse keyframes and the resting border/glow.
           ["--node-color" as string]: color,
-          borderColor: selected
-            ? "transparent"
-            : `color-mix(in oklch, ${color} 42%, transparent)`,
-          boxShadow: selected
-            ? undefined
-            : `0 1px 0 0 color-mix(in oklch, ${color} 10%, transparent), 0 8px 22px -16px ${color}`,
+          borderColor,
+          boxShadow,
         }}
       >
         {/* icon tile */}
@@ -122,6 +143,23 @@ function GraphNodeImpl({
             {ENTITY_CONFIG[entity.type].label}
           </span>
         </span>
+
+        {/* drag-to-connect handle */}
+        <span
+          role="button"
+          aria-label="Drag to connect"
+          title="Drag onto another entity to connect"
+          onPointerDown={(e) => {
+            if (e.button !== 0) return;
+            e.stopPropagation();
+            onStartConnect(entity.id, e.clientX, e.clientY);
+          }}
+          className={cn(
+            "absolute -right-1.5 top-1/2 z-10 -mt-[7px] size-3.5 cursor-crosshair rounded-full border-2 bg-ink-950 shadow transition-all duration-150 hover:scale-125 hover:opacity-100 group-hover:opacity-100",
+            isConnectSource ? "scale-125 opacity-100" : "opacity-50",
+          )}
+          style={{ borderColor: "var(--color-accent)" }}
+        />
       </div>
     </div>
   );

@@ -17,12 +17,19 @@ interface TopCommandBarProps {
 function LogoMark() {
   return (
     <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden>
-      <path d="M6 19 L13 6 L20 19" stroke="var(--color-accent)" strokeWidth="1.6" strokeLinejoin="round" opacity="0.55" />
-      <path d="M6 19 L20 13" stroke="var(--color-accent)" strokeWidth="1.6" opacity="0.35" />
-      <circle cx="13" cy="6" r="3.1" fill="var(--color-ink-950)" stroke="var(--color-accent-bright)" strokeWidth="1.6" />
-      <circle cx="6" cy="19" r="2.6" fill="var(--color-ink-950)" stroke="var(--color-accent)" strokeWidth="1.5" />
-      <circle cx="20" cy="19" r="2.6" fill="var(--color-ink-950)" stroke="var(--color-accent)" strokeWidth="1.5" />
-      <circle cx="20" cy="13" r="2" fill="var(--color-accent)" />
+      {/* legs of the "A" */}
+      <path d="M13 4.5 L5 21.5" stroke="var(--color-accent)" strokeWidth="1.8" strokeLinecap="round" opacity="0.6" />
+      <path d="M13 4.5 L21 21.5" stroke="var(--color-accent)" strokeWidth="1.8" strokeLinecap="round" opacity="0.6" />
+      {/* crossbar */}
+      <path d="M8.3 14.5 L17.7 14.5" stroke="var(--color-accent)" strokeWidth="1.8" strokeLinecap="round" opacity="0.45" />
+      {/* base nodes */}
+      <circle cx="5" cy="21.5" r="2.6" fill="var(--color-ink-950)" stroke="var(--color-accent)" strokeWidth="1.5" />
+      <circle cx="21" cy="21.5" r="2.6" fill="var(--color-ink-950)" stroke="var(--color-accent)" strokeWidth="1.5" />
+      {/* crossbar junction nodes */}
+      <circle cx="8.3" cy="14.5" r="1.5" fill="var(--color-accent)" />
+      <circle cx="17.7" cy="14.5" r="1.5" fill="var(--color-accent)" />
+      {/* apex node */}
+      <circle cx="13" cy="4.5" r="3.1" fill="var(--color-ink-950)" stroke="var(--color-accent-bright)" strokeWidth="1.7" />
     </svg>
   );
 }

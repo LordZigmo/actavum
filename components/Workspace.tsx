@@ -6,6 +6,7 @@ import type {
   Entity,
   EntityType,
   Point,
+  Relationship,
   TimelineEvent,
   Toast,
   WorkspaceState,
@@ -31,6 +32,7 @@ import { AddEntityModal, ImportEvidenceModal } from "./CommandModals";
 
 let toastSeq = 0;
 let addSeq = 0;
+let relSeq = 0;
 
 function pushToast(
   toasts: Toast[],
@@ -83,6 +85,7 @@ function initialState(): WorkspaceState {
     selection: { kind: "entity", id: "evan" },
     transform: { panX: 0, panY: 0, zoom: 1 },
     autoLinkRevealed: false,
+    gridStyle: "dots",
     activeSection: "entities",
     bottomPanel: { open: true, tab: "timeline" },
     visibleTypes,
@@ -200,6 +203,69 @@ function reducer(state: WorkspaceState, action: Action): WorkspaceState {
     }
     case "SET_SEARCH":
       return { ...state, search: action.value };
+
+    case "SET_GRID_STYLE":
+      return { ...state, gridStyle: action.style };
+
+    case "ADD_RELATIONSHIP": {
+      const s = state.entities.find((e) => e.id === action.sourceId);
+      const t = state.entities.find((e) => e.id === action.targetId);
+      const exists = state.relationships.some(
+        (r) =>
+          r.category !== "evidence" &&
+          ((r.sourceId === action.sourceId && r.targetId === action.targetId) ||
+            (r.sourceId === action.targetId && r.targetId === action.sourceId)),
+      );
+      if (exists) {
+        return {
+          ...state,
+          toasts: pushToast(
+            state.toasts,
+            `${s?.label} and ${t?.label} are already linked.`,
+            "info",
+          ),
+        };
+      }
+      const rel: Relationship = {
+        id: `usr-rel-${++relSeq}`,
+        label: "linked to",
+        category: "relationship",
+        sourceId: action.sourceId,
+        targetId: action.targetId,
+        confidence: "medium",
+        evidenceIds: [],
+        notes: "Link created on the board — hover the line to rename or reclassify it.",
+      };
+      return {
+        ...state,
+        relationships: [...state.relationships, rel],
+        selection: { kind: "relationship", id: rel.id },
+        toasts: pushToast(
+          state.toasts,
+          `Linked ${s?.label} → ${t?.label}. Hover the line to rename it.`,
+          "success",
+        ),
+      };
+    }
+    case "UPDATE_RELATIONSHIP":
+      return {
+        ...state,
+        relationships: state.relationships.map((r) =>
+          r.id === action.id ? { ...r, ...action.patch } : r,
+        ),
+      };
+    case "DELETE_RELATIONSHIP": {
+      const selection =
+        state.selection.kind === "relationship" && state.selection.id === action.id
+          ? { kind: "none" as const }
+          : state.selection;
+      return {
+        ...state,
+        relationships: state.relationships.filter((r) => r.id !== action.id),
+        selection,
+        toasts: pushToast(state.toasts, "Link removed.", "info"),
+      };
+    }
 
     case "ADD_ENTITY":
       return {
