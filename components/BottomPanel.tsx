@@ -7,10 +7,11 @@ import {
   FileBarChart,
   FileText,
   Lightbulb,
+  Link2,
   type LucideIcon,
 } from "lucide-react";
 import type { Action, BottomTab, WorkspaceState } from "@/lib/types";
-import { CASE_META, OPEN_QUESTIONS, REPORT_NARRATIVE } from "@/lib/case-data";
+import { CASE_META, OPEN_QUESTIONS, REPORT } from "@/lib/case-data";
 import { cn } from "@/lib/cn";
 
 interface BottomPanelProps {
@@ -25,8 +26,8 @@ const TABS: { id: BottomTab; label: string; icon: LucideIcon }[] = [
 ];
 
 const PRIORITY: Record<string, { label: string; color: string }> = {
-  high: { label: "High", color: "var(--color-risk-high)" },
-  medium: { label: "Medium", color: "var(--color-risk-medium)" },
+  high: { label: "High", color: "var(--color-conf-low)" },
+  medium: { label: "Medium", color: "var(--color-conf-medium)" },
   low: { label: "Low", color: "var(--color-ink-500)" },
 };
 
@@ -83,6 +84,28 @@ function ReportSection({
   );
 }
 
+// Numbered, clickable citation chip → opens the cited source on the board.
+function Cite({
+  n,
+  docId,
+  dispatch,
+}: {
+  n: number;
+  docId: string;
+  dispatch: Dispatch<Action>;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => dispatch({ type: "SELECT_ENTITY", id: docId })}
+      title="Open cited source"
+      className="mx-0.5 inline-flex items-center rounded bg-accent/15 px-1 align-super text-[9.5px] font-bold text-accent-bright transition-colors hover:bg-accent/35"
+    >
+      {n}
+    </button>
+  );
+}
+
 function ReportDraftTab({ state, dispatch }: BottomPanelProps) {
   if (!state.reportGenerated) {
     return (
@@ -92,8 +115,8 @@ function ReportDraftTab({ state, dispatch }: BottomPanelProps) {
         </span>
         <p className="mt-4 text-[13px] font-medium text-ink-400">No report drafted yet</p>
         <p className="mt-1 max-w-sm text-[12px] leading-relaxed text-ink-600">
-          Build the board, connect the evidence, then generate a clean, source-backed
-          report draft from the current case.
+          Add your evidence and build the timeline, then generate a clean, citation-first
+          report — every statement linked to a source.
         </p>
         <button
           type="button"
@@ -107,12 +130,26 @@ function ReportDraftTab({ state, dispatch }: BottomPanelProps) {
     );
   }
 
-  const entities = state.entities.filter((e) => e.type !== "document");
   const docs = state.entities.filter((e) => e.type === "document");
-  const keyEntities = [...entities].sort((a, b) => b.riskScore - a.riskScore).slice(0, 5);
+  const entities = state.entities.filter((e) => e.type !== "document");
+  const citeIndex = new Map(docs.map((d, i) => [d.id, i + 1] as const));
+
+  // Most-connected entities (excludes evidence links) — investigatively useful.
+  const degree = (id: string) =>
+    state.relationships.filter(
+      (r) => r.category !== "evidence" && (r.sourceId === id || r.targetId === id),
+    ).length;
+  const keyEntities = [...entities].sort((a, b) => degree(b.id) - degree(a.id)).slice(0, 5);
+
   const pinned = state.reportItemIds
     .map((id) => state.entities.find((e) => e.id === id))
     .filter(Boolean);
+
+  const cites = (ids: string[]) =>
+    ids.map((id) => {
+      const n = citeIndex.get(id);
+      return n ? <Cite key={id} n={n} docId={id} dispatch={dispatch} /> : null;
+    });
 
   return (
     <div className="mx-auto max-w-3xl rounded-xl border border-ink-800 bg-ink-950/50 p-6">
@@ -133,20 +170,22 @@ function ReportDraftTab({ state, dispatch }: BottomPanelProps) {
         </span>
       </div>
 
-      <p className="mt-3 text-[11px] text-ink-600">
-        Auto-generated from {entities.length} entities,{" "}
-        {state.relationships.filter((r) => r.category === "relationship").length}{" "}
-        relationships, and {docs.length} evidence sources. Every claim links to a cited
-        source.
-      </p>
+      {/* citation-first banner */}
+      <div className="mt-3 flex items-center gap-2 rounded-lg border border-accent/25 bg-accent/[0.07] px-3 py-2 text-[11.5px] text-accent-bright">
+        <Link2 size={13} className="shrink-0" />
+        Citation-first draft — every statement links to a numbered source. Click any
+        citation to open it on the board.
+      </div>
 
       <div className="mt-4 flex flex-col gap-4">
         <ReportSection title="Executive Summary">
-          <textarea
-            defaultValue={REPORT_NARRATIVE.executiveSummary.join("\n\n")}
-            rows={5}
-            className="w-full resize-none rounded-lg border border-transparent bg-transparent text-[12.5px] leading-relaxed text-ink-300 outline-none transition-colors hover:border-ink-800 focus:border-accent/40 focus:bg-ink-950/60 focus:px-2.5 focus:py-2"
-          />
+          <div className="flex flex-col gap-2">
+            {REPORT.summary.map((claim, i) => (
+              <p key={i}>
+                {claim.text} {cites(claim.cites)}
+              </p>
+            ))}
+          </div>
         </ReportSection>
 
         <ReportSection title="Key Entities">
@@ -160,10 +199,8 @@ function ReportDraftTab({ state, dispatch }: BottomPanelProps) {
                 >
                   {e.label}
                 </button>
-                <span className="text-ink-500">— {e.subtitle ?? e.type}</span>
-                <span className="ml-auto font-mono text-[11px] text-ink-600">
-                  risk {e.riskScore}
-                </span>
+                <span className="truncate text-ink-500">— {e.subtitle ?? e.type}</span>
+                <span className="ml-auto shrink-0">{cites(e.evidenceIds)}</span>
               </li>
             ))}
           </ul>
@@ -171,36 +208,33 @@ function ReportDraftTab({ state, dispatch }: BottomPanelProps) {
 
         <ReportSection title="Relationship Findings">
           <ul className="flex list-disc flex-col gap-1.5 pl-4 marker:text-ink-600">
-            {REPORT_NARRATIVE.relationshipFindings.map((f, i) => (
-              <li key={i}>{f}</li>
+            {REPORT.findings.map((claim, i) => (
+              <li key={i}>
+                {claim.text} {cites(claim.cites)}
+              </li>
             ))}
           </ul>
         </ReportSection>
 
         <ReportSection title="Timeline of Events">
-          <ul className="flex flex-col gap-1">
-            {state.timeline.map((ev) => {
-              const doc = state.entities.find((d) => d.id === ev.evidenceId);
-              return (
-                <li key={ev.id} className="flex flex-wrap items-baseline gap-x-2">
-                  <span className="font-mono text-[11px] text-ink-500">{ev.date}</span>
-                  <span className="text-white">{ev.title}</span>
-                  {doc && (
-                    <span className="text-[11px] italic text-ink-600">
-                      — {doc.label}
-                    </span>
-                  )}
-                </li>
-              );
-            })}
+          <ul className="flex flex-col gap-1.5">
+            {state.timeline.map((ev) => (
+              <li key={ev.id} className="flex flex-wrap items-baseline gap-x-2">
+                <span className="font-mono text-[11px] text-ink-500">{ev.date}</span>
+                <span className="text-white">{ev.title}</span>
+                <span>{cites([ev.evidenceId])}</span>
+              </li>
+            ))}
           </ul>
         </ReportSection>
 
         <ReportSection title="Evidence Appendix">
           <ol className="flex flex-col gap-1.5">
-            {docs.map((d, i) => (
+            {docs.map((d) => (
               <li key={d.id} className="flex gap-2">
-                <span className="font-mono text-[11px] text-ink-600">[{i + 1}]</span>
+                <span className="font-mono text-[11px] font-bold text-accent-bright">
+                  [{citeIndex.get(d.id)}]
+                </span>
                 <span>
                   <button
                     type="button"

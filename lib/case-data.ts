@@ -27,7 +27,6 @@ export const ENTITIES: Entity[] = [
     type: "person",
     label: "Evan Brooks",
     subtitle: "Subject · sole signatory",
-    riskScore: 87,
     confidence: "high",
     tags: ["Subject", "Beneficial owner?", "Prior fraud flag"],
     aliases: ["E. Brooks", "Evan M. Brooks", "“Van” Brooks"],
@@ -40,7 +39,6 @@ export const ENTITIES: Entity[] = [
     type: "company",
     label: "Northline Consulting LLC",
     subtitle: "Suspected shell entity",
-    riskScore: 79,
     confidence: "high",
     tags: ["Shell?", "No web presence", "Single member"],
     aliases: ["Northline Consulting", "Northline LLC"],
@@ -53,7 +51,6 @@ export const ENTITIES: Entity[] = [
     type: "address",
     label: "44 Waverly Ave",
     subtitle: "Syracuse, NY 13205",
-    riskScore: 64,
     confidence: "medium",
     tags: ["Co-location", "Zoning unconfirmed"],
     aliases: ["44 Waverly Avenue"],
@@ -66,7 +63,6 @@ export const ENTITIES: Entity[] = [
     type: "phone",
     label: "(315) 555-0198",
     subtitle: "Mobile · VoIP suspected",
-    riskScore: 41,
     confidence: "medium",
     tags: ["Contact", "VoIP?"],
     aliases: ["+1 315-555-0198"],
@@ -79,7 +75,6 @@ export const ENTITIES: Entity[] = [
     type: "email",
     label: "evan.b@northline.co",
     subtitle: "Sender of Invoice #8841",
-    riskScore: 55,
     confidence: "high",
     tags: ["Sender", "Custom domain"],
     aliases: ["evanb@northline.co"],
@@ -92,7 +87,6 @@ export const ENTITIES: Entity[] = [
     type: "bankAccount",
     label: "First Harbor ∗∗∗∗4821",
     subtitle: "Business checking",
-    riskScore: 72,
     confidence: "high",
     tags: ["Receiving account", "Round-dollar wires"],
     aliases: ["Acct ending 4821"],
@@ -105,7 +99,6 @@ export const ENTITIES: Entity[] = [
     type: "vehicle",
     label: "Black Ford F-150",
     subtitle: "2024 · Plate NY GHL-4821",
-    riskScore: 38,
     confidence: "medium",
     tags: ["Asset", "Recently registered"],
     aliases: ["Ford F-150 (black)"],
@@ -119,7 +112,6 @@ export const ENTITIES: Entity[] = [
     label: "$18,400 Wire Transfer",
     subtitle: "Mar 2, 2026 · inbound",
     date: "Mar 2, 2026",
-    riskScore: 83,
     confidence: "high",
     tags: ["Suspicious", "Round-dollar", "Inbound"],
     aliases: ["$18,400.00 wire"],
@@ -135,7 +127,6 @@ export const ENTITIES: Entity[] = [
     label: "Bank Statement March.pdf",
     subtitle: "PDF · 6 pages",
     date: "Mar 2026",
-    riskScore: 90,
     confidence: "high",
     tags: ["Source", "Bank record"],
     aliases: [],
@@ -150,7 +141,6 @@ export const ENTITIES: Entity[] = [
     label: "DMV Search Result",
     subtitle: "Public record",
     date: "Mar 4, 2026",
-    riskScore: 70,
     confidence: "high",
     tags: ["Source", "Public record"],
     aliases: [],
@@ -165,7 +155,6 @@ export const ENTITIES: Entity[] = [
     label: "Invoice #8841",
     subtitle: "Invoice · $18,400.00",
     date: "Mar 6, 2026",
-    riskScore: 76,
     confidence: "high",
     tags: ["Source", "Questioned doc"],
     aliases: [],
@@ -411,15 +400,40 @@ export const OPEN_QUESTIONS: OpenQuestion[] = [
 
 // --- Report draft narrative --------------------------------------------------
 
-export const REPORT_NARRATIVE = {
-  executiveSummary: [
-    "This report summarizes findings to date in the Brooks / Northline inquiry. The evidence describes a closed loop in which subject Evan Brooks controls Northline Consulting LLC, a thinly-documented entity that received an $18,400 round-dollar wire and rapidly converted the funds.",
-    "The subject's residence, the LLC's registered address, and a newly-registered vehicle all resolve to 44 Waverly Ave — a co-location pattern consistent with the use of a shell entity to move and shelter funds. An invoice issued after the funds arrived appears constructed to paper the transfer.",
+// Every report statement carries the document-entity ids that back it, so the
+// draft can render numbered, clickable citations (citation-first).
+export interface ReportClaim {
+  text: string;
+  cites: string[];
+}
+
+export const REPORT: { summary: ReportClaim[]; findings: ReportClaim[] } = {
+  summary: [
+    {
+      text: "Subject Evan Brooks controls Northline Consulting LLC, a thinly-documented entity that received an $18,400 round-dollar wire and moved the funds within days.",
+      cites: ["doc_bank", "doc_invoice"],
+    },
+    {
+      text: "The subject's residence, the LLC's registered address, and a newly-registered vehicle all resolve to 44 Waverly Ave — a co-location pattern consistent with using a shell entity to move funds. An invoice issued after the money arrived appears built to paper the transfer.",
+      cites: ["doc_dmv", "doc_invoice"],
+    },
   ],
-  relationshipFindings: [
-    "Brooks → Northline Consulting LLC (owns, High): subject is the sole signatory on filings.",
-    "Northline + Brooks + Black Ford F-150 → 44 Waverly Ave (co-location, High/Medium): three roles registered to a single address.",
-    "Northline → First Harbor ∗∗∗∗4821 (owns, High): receiving account for the inbound wire.",
-    "∗∗∗∗4821 → $18,400 Wire Transfer (received, High): round-dollar credit, withdrawn within a week.",
+  findings: [
+    {
+      text: "Evan Brooks owns Northline Consulting LLC as its sole listed signatory.",
+      cites: ["doc_invoice"],
+    },
+    {
+      text: "Brooks, Northline, and the Black Ford F-150 all register to 44 Waverly Ave.",
+      cites: ["doc_dmv", "doc_invoice"],
+    },
+    {
+      text: "Northline holds First Harbor business account ∗∗∗∗4821, which received the $18,400 wire.",
+      cites: ["doc_bank"],
+    },
+    {
+      text: "Account ∗∗∗∗4821 was emptied by a near-full withdrawal within a week of funding.",
+      cites: ["doc_bank"],
+    },
   ],
 };

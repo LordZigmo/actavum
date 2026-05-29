@@ -64,16 +64,3 @@ export function entityColor(type: EntityType): string {
 export function confidenceColor(confidence: Confidence): string {
   return `var(${CONFIDENCE_CONFIG[confidence].colorVar})`;
 }
-
-/** Risk band for coloring score chips: <50 low, 50–74 elevated, 75+ high. */
-export function riskColor(score: number): string {
-  if (score >= 75) return "var(--color-risk-high)";
-  if (score >= 50) return "var(--color-risk-medium)";
-  return "var(--color-risk-low)";
-}
-
-export function riskLabel(score: number): string {
-  if (score >= 75) return "High";
-  if (score >= 50) return "Elevated";
-  return "Low";
-}

@@ -10,7 +10,10 @@ interface EdgeLayerProps {
   selection: Selection;
   searchActive: boolean;
   matchedIds: Set<string>;
+  /** Live edge being dragged from a node's connect handle. */
+  pending: { from: Point; to: Point } | null;
   onSelectEdge: (id: string) => void;
+  onEdgeHover: (id: string | null) => void;
 }
 
 export function EdgeLayer({
@@ -19,7 +22,9 @@ export function EdgeLayer({
   selection,
   searchActive,
   matchedIds,
+  pending,
   onSelectEdge,
+  onEdgeHover,
 }: EdgeLayerProps) {
   const selectedEdgeId = selection.kind === "relationship" ? selection.id : null;
   const selectedEntityId = selection.kind === "entity" ? selection.id : null;
@@ -53,9 +58,25 @@ export function EdgeLayer({
             active={active}
             dimmed={dimmed}
             onSelect={onSelectEdge}
+            onHover={onEdgeHover}
           />
         );
       })}
+
+      {pending && (
+        <line
+          x1={pending.from.x}
+          y1={pending.from.y}
+          x2={pending.to.x}
+          y2={pending.to.y}
+          stroke="var(--color-accent)"
+          strokeWidth={2}
+          strokeDasharray="6 6"
+          strokeLinecap="round"
+          className="animate-dash-flow"
+          style={{ pointerEvents: "none" }}
+        />
+      )}
     </svg>
   );
 }

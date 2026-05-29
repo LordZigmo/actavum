@@ -1,7 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Filter, LayoutGrid, Maximize, ZoomIn, ZoomOut } from "lucide-react";
+import {
+  ChevronDown,
+  Filter,
+  Grid3x3,
+  Grip,
+  LayoutGrid,
+  Maximize,
+  ZoomIn,
+  ZoomOut,
+} from "lucide-react";
 import type { EntityType } from "@/lib/types";
 import { ENTITY_CONFIG, ENTITY_TYPE_ORDER, entityColor } from "@/lib/entity-config";
 import { cn } from "@/lib/cn";
@@ -9,11 +18,13 @@ import { cn } from "@/lib/cn";
 interface CanvasToolbarProps {
   zoom: number;
   visibleTypes: Record<EntityType, boolean>;
+  gridStyle: "dots" | "lines";
   onZoomIn: () => void;
   onZoomOut: () => void;
   onFit: () => void;
   onReset: () => void;
   onToggleType: (type: EntityType) => void;
+  onSetGridStyle: (style: "dots" | "lines") => void;
 }
 
 const iconBtn =
@@ -22,11 +33,13 @@ const iconBtn =
 export function CanvasToolbar({
   zoom,
   visibleTypes,
+  gridStyle,
   onZoomIn,
   onZoomOut,
   onFit,
   onReset,
   onToggleType,
+  onSetGridStyle,
 }: CanvasToolbarProps) {
   const [filterOpen, setFilterOpen] = useState(false);
   const hiddenCount = ENTITY_TYPE_ORDER.filter((t) => !visibleTypes[t]).length;
@@ -34,7 +47,10 @@ export function CanvasToolbar({
   return (
     <>
       {/* Filters — top-left */}
-      <div className="pointer-events-auto absolute left-3 top-3 z-50">
+      <div
+        className="pointer-events-auto absolute left-3 top-3 z-50"
+        onPointerDown={(e) => e.stopPropagation()}
+      >
         <button
           type="button"
           onClick={() => setFilterOpen((v) => !v)}
@@ -108,7 +124,11 @@ export function CanvasToolbar({
       </div>
 
       {/* Zoom / view — bottom-left */}
-      <div className="pointer-events-auto absolute bottom-3 left-3 z-50 flex items-center gap-1 rounded-xl border border-ink-700/70 bg-ink-900/90 p-1 backdrop-blur-md">
+      <div
+        className="pointer-events-auto absolute bottom-3 left-3 z-50 flex items-center gap-1 rounded-xl border border-ink-700/70 bg-ink-900/90 p-1 backdrop-blur-md"
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+
         <button type="button" className={iconBtn} onClick={onZoomOut} title="Zoom out">
           <ZoomOut size={15} />
         </button>
@@ -124,6 +144,19 @@ export function CanvasToolbar({
         </button>
         <button type="button" className={iconBtn} onClick={onReset} title="Reset layout">
           <LayoutGrid size={15} />
+        </button>
+        <span className="mx-0.5 h-5 w-px bg-ink-700" />
+        <button
+          type="button"
+          className={iconBtn}
+          onClick={() => onSetGridStyle(gridStyle === "dots" ? "lines" : "dots")}
+          title={
+            gridStyle === "dots"
+              ? "Background: dots — switch to lines"
+              : "Background: lines — switch to dots"
+          }
+        >
+          {gridStyle === "dots" ? <Grip size={15} /> : <Grid3x3 size={15} />}
         </button>
       </div>
     </>

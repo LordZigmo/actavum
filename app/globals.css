@@ -102,6 +102,21 @@ body {
   background-repeat: repeat;
 }
 
+.graph-grid-lines {
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in oklch, var(--color-ink-700) 55%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--color-ink-700) 55%, transparent) 1px,
+      transparent 1px
+    );
+  background-repeat: repeat;
+}
+
 /* z-index scale (documented): grid 0 < edges 10 < edge-labels 20 < nodes 30 <
    selected node 40 < canvas toolbar 50 < panels (normal flow) < toasts 100 */
 

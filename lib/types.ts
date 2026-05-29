@@ -34,8 +34,6 @@ export interface Entity {
   type: EntityType;
   label: string;
   subtitle?: string;
-  /** 0–100. For documents this reads as relevance/strength. */
-  riskScore: number;
   confidence: Confidence;
   tags: string[];
   aliases: string[];
@@ -119,6 +117,7 @@ export interface WorkspaceState {
   selection: Selection;
   transform: Transform;
   autoLinkRevealed: boolean;
+  gridStyle: "dots" | "lines";
   activeSection: SidebarSection;
   bottomPanel: BottomPanelState;
   visibleTypes: Record<EntityType, boolean>;
@@ -149,6 +148,10 @@ export type Action =
   | { type: "GENERATE_REPORT" }
   | { type: "AUTO_LINK" }
   | { type: "TOGGLE_TYPE"; entityType: EntityType }
+  | { type: "SET_GRID_STYLE"; style: "dots" | "lines" }
+  | { type: "ADD_RELATIONSHIP"; sourceId: string; targetId: string }
+  | { type: "UPDATE_RELATIONSHIP"; id: string; patch: Partial<Relationship> }
+  | { type: "DELETE_RELATIONSHIP"; id: string }
   | { type: "SET_SEARCH"; value: string }
   | { type: "ADD_ENTITY"; entity: Entity; pos: Point }
   | { type: "IMPORT_EVIDENCE"; doc: Entity; pos: Point; event: TimelineEvent }

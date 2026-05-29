@@ -14,6 +14,7 @@ interface GraphEdgeProps {
   active: boolean;
   dimmed: boolean;
   onSelect: (id: string) => void;
+  onHover: (id: string | null) => void;
 }
 
 function strokeFor(rel: Relationship): string {
@@ -30,6 +31,7 @@ function GraphEdgeImpl({
   active,
   dimmed,
   onSelect,
+  onHover,
 }: GraphEdgeProps) {
   const d = bezierPath(a, b);
   const color = strokeFor(rel);
@@ -58,6 +60,8 @@ function GraphEdgeImpl({
         strokeLinecap="round"
         style={{ pointerEvents: "stroke", cursor: "pointer" }}
         onPointerDown={handleSelect}
+        onPointerEnter={() => onHover(rel.id)}
+        onPointerLeave={() => onHover(null)}
       />
       {/* visible path */}
       <path
