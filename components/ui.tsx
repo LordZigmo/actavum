@@ -7,8 +7,6 @@ import {
   ENTITY_CONFIG,
   confidenceColor,
   entityColor,
-  riskColor,
-  riskLabel,
 } from "@/lib/entity-config";
 import { cn } from "@/lib/cn";
 
@@ -53,32 +51,6 @@ export function Tag({ children }: { children: ReactNode }) {
     <span className="rounded-md border border-ink-700/70 bg-ink-800/60 px-2 py-0.5 text-[11px] font-medium text-ink-400">
       {children}
     </span>
-  );
-}
-
-export function RiskMeter({ score }: { score: number }) {
-  const color = riskColor(score);
-  return (
-    <div className="flex items-center gap-3">
-      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-ink-800">
-        <div
-          className="h-full rounded-full transition-[width] duration-500"
-          style={{ width: `${score}%`, background: color }}
-        />
-      </div>
-      <span className="font-mono text-[15px] font-bold leading-none" style={{ color }}>
-        {score}
-      </span>
-      <span
-        className="rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase"
-        style={{
-          color,
-          background: `color-mix(in oklch, ${color} 14%, transparent)`,
-        }}
-      >
-        {riskLabel(score)}
-      </span>
-    </div>
   );
 }
 

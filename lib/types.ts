@@ -34,8 +34,6 @@ export interface Entity {
   type: EntityType;
   label: string;
   subtitle?: string;
-  /** 0–100. For documents this reads as relevance/strength. */
-  riskScore: number;
   confidence: Confidence;
   tags: string[];
   aliases: string[];

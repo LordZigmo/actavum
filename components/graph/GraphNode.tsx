@@ -2,7 +2,7 @@
 
 import { memo, useRef, type PointerEvent as ReactPointerEvent } from "react";
 import type { Entity, Point } from "@/lib/types";
-import { ENTITY_CONFIG, entityColor, riskColor } from "@/lib/entity-config";
+import { ENTITY_CONFIG, entityColor } from "@/lib/entity-config";
 import { cn } from "@/lib/cn";
 
 interface GraphNodeProps {
@@ -122,17 +122,6 @@ function GraphNodeImpl({
             {ENTITY_CONFIG[entity.type].label}
           </span>
         </span>
-
-        {/* risk pip */}
-        {!isDoc && (
-          <span
-            className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1 font-mono text-[10px] font-bold text-ink-950"
-            style={{ background: riskColor(entity.riskScore) }}
-            title={`Risk ${entity.riskScore}`}
-          >
-            {entity.riskScore}
-          </span>
-        )}
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import { type Dispatch } from "react";
 import { Clock, FileBarChart, FileSearch } from "lucide-react";
 import type { Action, Entity, WorkspaceState } from "@/lib/types";
 import { ENTITY_CONFIG, entityColor } from "@/lib/entity-config";
-import { ConfidenceBadge, EntityChip, RiskMeter, SectionLabel, Tag } from "./ui";
+import { ConfidenceBadge, EntityChip, SectionLabel, Tag } from "./ui";
 import { cn } from "@/lib/cn";
 
 interface EntityInspectorProps {
@@ -16,7 +16,6 @@ interface EntityInspectorProps {
 export function EntityInspector({ entity, state, dispatch }: EntityInspectorProps) {
   const Icon = ENTITY_CONFIG[entity.type].icon;
   const color = entityColor(entity.type);
-  const isDoc = entity.type === "document";
 
   const connections = state.relationships
     .filter(
@@ -84,12 +83,6 @@ export function EntityInspector({ entity, state, dispatch }: EntityInspectorProp
         <div className="mt-3">
           <ConfidenceBadge confidence={entity.confidence} />
         </div>
-      </div>
-
-      {/* risk */}
-      <div className="rounded-xl border border-ink-800 bg-ink-900/50 p-3">
-        <SectionLabel className="mb-2">{isDoc ? "Evidentiary weight" : "Risk score"}</SectionLabel>
-        <RiskMeter score={entity.riskScore} />
       </div>
 
       {/* tags */}
