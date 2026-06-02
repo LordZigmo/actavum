@@ -87,7 +87,7 @@ function initialState(): WorkspaceState {
     autoLinkRevealed: false,
     gridStyle: "dots",
     activeSection: "entities",
-    bottomPanel: { open: true, tab: "timeline" },
+    bottomPanel: { open: false, tab: "timeline" },
     visibleTypes,
     search: "",
     reportGenerated: false,
