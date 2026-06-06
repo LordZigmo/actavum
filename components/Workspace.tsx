@@ -82,7 +82,7 @@ function initialState(): WorkspaceState {
     relationships: BASE_EDGES,
     timeline: sortTimeline(TIMELINE),
     positions: { ...INITIAL_POSITIONS },
-    selection: { kind: "entity", id: "evan" },
+    selection: { kind: "entity", id: "claimant" },
     transform: { panX: 0, panY: 0, zoom: 1 },
     autoLinkRevealed: false,
     gridStyle: "dots",

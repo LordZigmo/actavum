@@ -146,7 +146,7 @@ export function ImportEvidenceModal({
   onSubmit: (label: string) => void;
 }) {
   const [label, setLabel] = useState("");
-  const samples = ["Phone Records Feb–Mar.csv", "Surveillance Log 03-08.pdf", "LLC Filing.pdf"];
+  const samples = ["Surveillance Log 05-28.pdf", "Pharmacy Records.pdf", "Wage Statement.pdf"];
 
   return (
     <ModalShell
